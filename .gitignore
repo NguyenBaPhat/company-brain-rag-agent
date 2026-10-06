@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.cache/
+.env
+*.egg-info/
+data/runtime/
+data/qdrant_storage/
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+*.tsbuildinfo

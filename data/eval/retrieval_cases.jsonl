@@ -1,0 +1,44 @@
+{"id": "r01", "query": "Glow Serum usage instructions how to apply", "expect_docs": ["product-glow-serum"], "kind": "answerable"}
+{"id": "r02", "query": "Glow Serum price", "expect_docs": ["product-glow-serum"], "kind": "answerable"}
+{"id": "r03", "query": "Glow Serum active ingredients vitamin C niacinamide percentage", "expect_docs": ["product-glow-serum"], "kind": "answerable"}
+{"id": "r04", "query": "Glow Serum consumer study results", "expect_docs": ["product-glow-serum"], "kind": "answerable"}
+{"id": "r05", "query": "Barrier Cream ingredients ceramides", "expect_docs": ["product-barrier-cream"], "kind": "answerable"}
+{"id": "r06", "query": "can Barrier Cream claim clinically proven results", "expect_docs": ["product-barrier-cream", "compliance-claims-policy"], "kind": "answerable"}
+{"id": "r07", "query": "Gentle Gel Cleanser price and size", "expect_docs": ["product-gentle-cleanser"], "kind": "answerable"}
+{"id": "r08", "query": "Starter Trio bundle price", "expect_docs": ["product-gentle-cleanser"], "kind": "answerable"}
+{"id": "r09", "query": "is dermatologist recommended claim allowed", "expect_docs": ["compliance-claims-policy"], "kind": "answerable"}
+{"id": "r10", "query": "before and after photo rules for ads", "expect_docs": ["compliance-claims-policy"], "kind": "answerable"}
+{"id": "r11", "query": "influencer paid partnership disclosure requirements", "expect_docs": ["compliance-claims-policy", "sop-influencer-ugc"], "kind": "answerable"}
+{"id": "r12", "query": "brand voice and tone guidelines", "expect_docs": ["brand-voice"], "kind": "answerable"}
+{"id": "r13", "query": "words to avoid in marketing copy", "expect_docs": ["brand-voice"], "kind": "answerable"}
+{"id": "r14", "query": "Meta ads headline length and primary text conventions", "expect_docs": ["brand-voice"], "kind": "answerable"}
+{"id": "r15", "query": "brand color palette hex codes", "expect_docs": ["brand-visual"], "kind": "answerable"}
+{"id": "r16", "query": "creative brief approval workflow and review time", "expect_docs": ["sop-creative-brief"], "kind": "answerable"}
+{"id": "r17", "query": "creative asset naming convention", "expect_docs": ["sop-creative-brief"], "kind": "answerable"}
+{"id": "r18", "query": "influencer affiliate commission rate", "expect_docs": ["sop-influencer-ugc"], "kind": "answerable"}
+{"id": "r19", "query": "customer adverse reaction handling procedure", "expect_docs": ["sop-support-escalation"], "kind": "answerable"}
+{"id": "r20", "query": "refund approval limit for support agents", "expect_docs": ["sop-support-escalation"], "kind": "answerable"}
+{"id": "r21", "query": "free shipping threshold", "expect_docs": ["sop-shipping-returns"], "kind": "answerable"}
+{"id": "r22", "query": "subscription cancellation notice period", "expect_docs": ["sop-shipping-returns"], "kind": "answerable"}
+{"id": "r23", "query": "what drives customers to buy skincare purchase drivers", "expect_docs": ["research-survey-2025q4"], "kind": "answerable"}
+{"id": "r24", "query": "positive customer review themes texture", "expect_docs": ["research-review-themes"], "kind": "answerable"}
+{"id": "r25", "query": "Sensitive-Skin Sara persona", "expect_docs": ["research-personas"], "kind": "answerable"}
+{"id": "r26", "query": "which hook type had the best click-through rate on Meta", "expect_docs": ["learnings-meta-q3-2025"], "kind": "answerable"}
+{"id": "r27", "query": "UGC versus studio video performance", "expect_docs": ["learnings-meta-q3-2025"], "kind": "answerable"}
+{"id": "r28", "query": "creative fatigue frequency threshold", "expect_docs": ["learnings-meta-q3-2025", "sop-creative-brief"], "kind": "answerable"}
+{"id": "r29", "query": "ASMR texture video performance", "expect_docs": ["learnings-hooks-formats-2025"], "kind": "answerable"}
+{"id": "r30", "query": "pump dispenser clogging complaints", "expect_docs": ["research-review-themes"], "kind": "answerable"}
+{"id": "r31", "query": "discount-led versus education-led creative CAC and repurchase", "expect_docs": ["learnings-meta-q3-2025"], "kind": "answerable"}
+{"id": "r32", "query": "how customers describe their skin problems in their own words", "expect_docs": ["research-survey-2025q4"], "kind": "answerable"}
+{"id": "g01", "query": "what is the capital of France", "expect_docs": [], "kind": "off_domain"}
+{"id": "g02", "query": "how to bake sourdough bread", "expect_docs": [], "kind": "off_domain"}
+{"id": "g03", "query": "python code to sort a list", "expect_docs": [], "kind": "off_domain"}
+{"id": "g04", "query": "who won the football world cup", "expect_docs": [], "kind": "off_domain"}
+{"id": "g05", "query": "explain how photosynthesis works", "expect_docs": [], "kind": "off_domain"}
+{"id": "g06", "query": "TikTok Shop strategy and budget", "expect_docs": [], "kind": "gap"}
+{"id": "g07", "query": "Q4 2026 marketing budget allocation", "expect_docs": [], "kind": "gap"}
+{"id": "g08", "query": "competitor pricing comparison", "expect_docs": [], "kind": "gap"}
+{"id": "g09", "query": "is the serum safe to use during pregnancy", "expect_docs": [], "kind": "gap"}
+{"id": "g10", "query": "list of retail partner stores", "expect_docs": [], "kind": "gap"}
+{"id": "g11", "query": "ingredient suppliers and sourcing", "expect_docs": [], "kind": "gap"}
+{"id": "g12", "query": "influencer rate card price per post", "expect_docs": [], "kind": "gap"}

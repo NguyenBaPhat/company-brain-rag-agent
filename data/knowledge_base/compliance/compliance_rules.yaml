@@ -1,0 +1,115 @@
+# Machine-readable form of compliance/claims-and-advertising-policy.md.
+# Enforced in code by company_brain.agent.compliance (deterministic scan).
+# The markdown policy is the source of truth for humans; keep both in sync.
+version: "2026-02-01"
+source_doc: compliance-claims-policy
+
+rules:
+  - id: no-disease-claims
+    severity: block
+    policy_section: "1. Prohibited Disease and Treatment Claims"
+    description: Must not claim to treat, cure, heal, repair, or prevent a disease or skin condition.
+    patterns:
+      en:
+        - '\b(cure[sd]?|cures|heals?|healing|treats?|treating|treatment for)\b[^.!?\n]{0,40}\b(acne|eczema|dermatitis|rosacea|psoriasis|melasma|hyperpigmentation|breakouts?)\b'
+        - '\b(acne|eczema|dermatitis|rosacea|psoriasis|melasma)\b[^.!?\n]{0,30}\b(cure|treatment|remedy)\b'
+        - '\brepairs?\s+(damaged|broken)\s+skin\b'
+      vi:
+        - 'chữa\s+(khỏi|trị|lành)'
+        - 'điều\s+trị'
+        - 'trị\s+(mụn|nám|chàm|viêm)'
+    suggestion: Use appearance language, e.g. "helps skin look more even" or "helps support the skin's moisture barrier".
+
+  - id: no-endorsement-claims
+    severity: block
+    policy_section: "2. Endorsement and Proof Claims"
+    description: '"Clinically proven/tested" and dermatologist/doctor endorsement claims are prohibited.'
+    patterns:
+      en:
+        - '\bclinically\s+(proven|tested|shown|validated)\b'
+        - '\bdermatologist[- ](recommended|approved|tested|developed|endorsed)\b'
+        - '\bdoctor[- ](approved|recommended)\b'
+      vi:
+        - 'đã\s+được\s+chứng\s+minh\s+lâm\s+sàng'
+        - 'kiểm\s+nghiệm\s+lâm\s+sàng'
+        - 'bác\s+sĩ\s+(da\s+liễu\s+)?(khuyên\s+dùng|khuyến\s+nghị|chứng\s+nhận)'
+    suggestion: Remove the claim. Only the Glow Serum 4-week consumer perception study (n=64) may be cited, with its disclaimer.
+
+  - id: no-superlatives
+    severity: block
+    policy_section: "3. Superlatives and Comparative Claims"
+    description: Unsubstantiated superlatives and guarantees are prohibited.
+    patterns:
+      en:
+        - '(?<![\w-])(?:best|#1|number\s+one|miracle|flawless|perfect\s+skin|guaranteed\s+results?|instant\s+results?)(?![\w-])'
+        - '\b(forever|permanently)\b[^.!?\n]{0,30}\b(fade|remove|erase|clear)s?\b'
+        - '\b(fade|remove|erase|clear)s?\b[^.!?\n]{0,30}\b(forever|permanently)\b'
+      vi:
+        - 'tốt\s+nhất'
+        - '(?:sản\s+phẩm|serum|kem)\s+số\s+1'
+        - 'thần\s+kỳ'
+        - 'hoàn\s+hảo'
+        - 'cam\s+kết\s+(hiệu\s+quả|kết\s+quả)'
+        - 'vĩnh\s+viễn'
+    suggestion: Replace with a measured, substantiated benefit using "helps" or "visibly".
+
+  - id: no-body-shaming
+    severity: block
+    policy_section: "6. Sensitive Audiences and Body Image"
+    description: Do not call out personal insecurities or shame skin.
+    patterns:
+      en:
+        - '\bugly\s+(pores?|skin|spots?|marks?)\b'
+        - '\b(fix|hide)\s+your\s+(flaws?|imperfections?|ugly)\b'
+        - '\bstruggling\s+with\b[^.!?\n]{0,30}\b(acne|pores?|wrinkles?|dark\s+spots?)\b'
+      vi:
+        - 'da\s+xấu'
+        - 'lỗ\s+chân\s+lông\s+xấu'
+        - 'khuyết\s+điểm'
+    suggestion: Speak to the routine or the feeling, never to a flaw. Example - "Glow, without the stinging."
+
+  - id: no-pregnancy-safety
+    severity: warn
+    policy_section: "6. Sensitive Audiences and Body Image"
+    description: Do not make pregnancy or breastfeeding safety claims.
+    patterns:
+      en:
+        - '\b(safe|ok|okay)\s+(for|during|in)\s+(pregnancy|pregnant|breastfeeding|nursing)\b'
+        - '\bpregnancy[- ]safe\b'
+      vi:
+        - 'an\s+toàn\s+(cho|khi)\s+(bà\s+bầu|mang\s+thai|cho\s+con\s+bú)'
+    suggestion: Say "Please consult your doctor" instead.
+
+  - id: no-competitor-or-comparison
+    severity: warn
+    policy_section: "3. Superlatives and Comparative Claims"
+    description: Competitor names and comparative claims need Legal approval.
+    patterns:
+      en:
+        - '\b(better|stronger|more\s+effective|gentler)\s+than\b'
+        - '\b(vs\.?|versus)\s+[A-Z][a-z]+'
+      vi:
+        - 'tốt\s+hơn'
+        - 'mạnh\s+hơn'
+    suggestion: Remove the comparison or request Legal approval before use.
+
+# Disclaimers that must accompany certain kinds of content.
+required_disclaimers:
+  - id: results-disclaimer
+    description: Any percentage or result statistic must carry the results disclaimer.
+    trigger_patterns:
+      en: ['\b\d{1,3}\s?%\s+(said|of\s+(participants|users|people|respondents)|felt|reported)\b', '\bconsumer\s+(perception\s+)?study\b', '\bbefore[- ]and[- ]after\b']
+      vi: ['\b\d{1,3}\s?%\b[^.!?\n]{0,40}(cho\s+biết|nói|cảm\s+thấy)', 'trước\s+và\s+sau']
+    must_include:
+      en: ['individual results may vary']
+      vi: ['kết quả có thể khác nhau']
+    policy_section: "2. Endorsement and Proof Claims"
+  - id: influencer-disclosure
+    description: Influencer, creator, or UGC scripts must include a paid-partnership disclosure.
+    trigger_patterns:
+      en: ['\b(influencer|creator|ugc)\b']
+      vi: ['\b(influencer|creator|ugc|người\s+sáng\s+tạo)\b']
+    must_include:
+      en: ['#ad', '#gifted', 'paid partnership']
+      vi: ['#ad', '#gifted', 'paid partnership', 'hợp tác trả phí']
+    policy_section: "5. Influencer and UGC Disclosure"

@@ -1,0 +1,60 @@
+# Company Brain — local production-like stack:  docker compose up --build
+#   Qdrant (vector DB)  ->  Backend (FastAPI + Google ADK agent)  ->  Frontend (React behind nginx)
+name: company-brain
+
+services:
+  qdrant:
+    image: qdrant/qdrant:${QDRANT_VERSION:-v1.19.2}
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # REST + dashboard at http://localhost:6333/dashboard
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      additional_contexts:
+        certs: ${CA_CERTS_DIR:-./docker/certs}   # empty by default; set to your CA bundle dir behind a proxy
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    # `environment` wins over `env_file`, so container-specific values live here: the dev-oriented .env
+    # (relative paths, text logs, localhost Qdrant) must not leak into the container.
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      CORS_ORIGINS: http://localhost:8080
+      EMBEDDING_CACHE_DIR: /models        # baked into the image
+      LOG_FORMAT: json
+      QDRANT_PATH: ""
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - backend_data:/app/data/runtime   # chat sessions (SQLite) and saved briefs
+      - ${CA_CERTS_DIR:-./docker/certs}:/certs:ro   # optional CA bundle, see README
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      additional_contexts:
+        certs: ${CA_CERTS_DIR:-./docker/certs}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+volumes:
+  qdrant_data:
+  backend_data:
