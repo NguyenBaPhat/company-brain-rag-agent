@@ -37,61 +37,84 @@ is bilingual (EN / VI) while the knowledge base stays English.
 
 ## 2. Architecture
 
-### Components
+### System overview
+
+```mermaid
+flowchart TB
+  UI["<b>React UI</b><br/>chat · history · citations · sources"]
+  API["<b>FastAPI backend</b><br/>WebSocket /ws/chat · REST /api"]
+  AGENT["<b>Google ADK agent</b><br/>Gemini · 5 tools · guardrail callbacks"]
+
+  GEM(["Gemini API"])
+  QD[("Qdrant<br/>vector search")]
+  EMB["fastembed<br/>local embeddings"]
+  COMP["Compliance<br/>rules engine"]
+  BR[("Saved briefs<br/>markdown files")]
+  SESS[("SQLite<br/>chat sessions")]
+
+  UI <--> API
+  API --> AGENT
+  AGENT --> GEM
+  AGENT --> QD
+  AGENT --> EMB
+  AGENT --> COMP
+  AGENT --> BR
+  AGENT --> SESS
+
+  classDef front fill:#e8f1e8,stroke:#5f7a5e,color:#2e2b28
+  classDef back fill:#f6f1e9,stroke:#7a4b3a,color:#2e2b28
+  classDef store fill:#eef2f7,stroke:#5d6f86,color:#2e2b28
+  class UI front
+  class API,AGENT back
+  class GEM,QD,EMB,COMP,BR,SESS store
+```
+
+| Link | What flows over it |
+|---|---|
+| UI ↔ API | One WebSocket per conversation (tokens, tool steps, sources, final answer) plus plain REST for the sidebar, source panel and brief download |
+| Agent → Gemini | The only external call at runtime (HTTPS, streaming, function calling) |
+| Agent → Qdrant | Hybrid search: dense + BM25, fused with RRF |
+| Agent → fastembed | The query is embedded locally with the same models that built the index |
+| Agent → Compliance | `check_compliance`, the `save_creative_brief` gate, and the output scan |
+| Agent → Saved briefs | `save_creative_brief` writes a validated markdown file |
+| Agent → SQLite | ADK session state and chat history (this is what the history sidebar lists) |
+
+### Inside the agent
 
 ```mermaid
 flowchart LR
-  UI["React UI<br/>chat · history sidebar · citation chips<br/>sources panel · EN/VI"]
+  IN(["User message"]) --> LLM["<b>Gemini</b><br/>decides the next step"]
+  LLM -->|"needs data"| CBT["<b>before_tool</b><br/>check the budget"]
+  CBT --> TOOL["Run the tool"]
+  TOOL -->|"result"| LLM
+  LLM -->|"final answer"| CBM["<b>after_model</b><br/>verify citations<br/>scan and redact copy"]
+  CBM --> OUT(["Answer + guardrail report"])
 
-  subgraph Backend["FastAPI backend"]
-    API["API layer<br/>WebSocket /ws/chat + event translator<br/>REST /api: sessions, chunks, briefs, sources"]
-    subgraph ADK["Google ADK agent: company_brain"]
-      LLM["Runner + Gemini<br/>streaming, function calling"]
-      CBT["before_tool_callback<br/>per-turn tool budgets"]
-      TOOLS["5 tools"]
-      CBM["after_model_callback<br/>final answer only:<br/>verify citations, scan + redact copy"]
-    end
-  end
-
-  GEM(["Gemini API<br/>external"])
-  SESS[("ADK sessions<br/>SQLite")]
-  QD[("Qdrant<br/>dense + BM25 vectors")]
-  EMB["Embedding models<br/>fastembed: MiniLM + BM25"]
-  COMP["Compliance engine<br/>YAML rules, regex"]
-  BR[("Saved briefs<br/>markdown files")]
-
-  UI <-->|"JSON events over WebSocket"| API
-  API -->|"run_async"| LLM
-  LLM -->|"function_call"| CBT --> TOOLS
-  TOOLS -->|"function_response"| LLM
-  LLM -->|"final text"| CBM
-  CBM -->|"answer + guardrail report"| API
-  LLM <-->|"HTTPS"| GEM
-  LLM <-->|"history + state"| SESS
-  TOOLS -->|"embed query"| EMB
-  TOOLS -->|"hybrid query: dense + BM25, RRF"| QD
-  TOOLS -->|"check + save gate"| COMP
-  CBM -->|"scan copy"| COMP
-  TOOLS -->|"save_creative_brief"| BR
+  classDef gate fill:#fbefd3,stroke:#a8741a,color:#2e2b28
+  class CBT,CBM gate
 ```
 
-The REST endpoints (sources panel, history sidebar, brief download) read straight from Qdrant, the session store and the
-saved-brief files; they are left out of the picture to keep it legible.
-
-Two things are easy to misread in the diagram: `before_tool_callback` runs **before every tool call** (budgets), while
-`after_model_callback` runs **once on the model's final answer** (citation check + compliance scan), not between a tool
-and the model.
+The loop on top repeats until Gemini answers with text (at most 14 model calls per turn). The two amber steps are code, not
+prompts: `before_tool_callback` runs **before every tool call** (per-turn budgets), while `after_model_callback` runs
+**once, on the final answer** (citation check and compliance scan), never between a tool and the model.
 
 ### Ingestion (offline pipeline, `cb-ingest`)
 
 ```mermaid
 flowchart LR
-  KB["17 markdown docs<br/>YAML front matter + headings"] --> LD["Loader<br/>validates front matter,<br/>unique doc_id"]
-  LD --> CH["Chunker<br/>H2/H3 sections, max 220 words<br/>id = doc_id#section"]
-  CH --> EM["fastembed<br/>dense MiniLM + sparse BM25<br/>title + heading as context"]
-  EM --> QD[("Qdrant<br/>upsert new or changed chunks<br/>delete vanished chunks")]
-  RULES["compliance_rules.yaml"] -.->|"read at startup, not indexed"| COMP["Compliance engine"]
+  KB["<b>Docs</b><br/>17 markdown"] --> LD["<b>Loader</b><br/>validate"] --> CH["<b>Chunker</b><br/>by heading"] --> EM["<b>Embed</b><br/>dense + BM25"] --> QD[("<b>Qdrant</b><br/>sync")]
+
+  classDef step fill:#f6f1e9,stroke:#7a4b3a,color:#2e2b28
+  classDef store fill:#eef2f7,stroke:#5d6f86,color:#2e2b28
+  class KB,LD,CH,EM step
+  class QD store
 ```
+
+- **Loader**: validates the YAML front matter and requires unique `doc_id`s; a bad document fails the run.
+- **Chunker**: one chunk per H2/H3 section (max 220 words); the id `doc_id#section` is also the citation key.
+- **Embed**: dense MiniLM + sparse BM25, computed locally on `document title + heading + text`.
+- **Qdrant sync**: only new or changed chunks are upserted, vanished ones are deleted (re-ingesting an unchanged KB takes 0.1 s).
+- `compliance_rules.yaml` sits next to the documents but is **not indexed**: the compliance engine reads it at startup.
 
 ### The agent's 5 tools
 
